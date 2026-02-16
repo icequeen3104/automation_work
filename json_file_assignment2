@@ -1,0 +1,207 @@
+import json
+
+policies = [{
+"policy_id": "SEC001",
+"name": "Password Policy",
+"enabled": True,
+"min_length": 8,
+"max_attempts": 5
+},
+{
+"policy_id": "SEC002",
+"name": "",
+"enabled": True,
+"min_length": 4,
+"max_attempts": -1
+},
+{
+"policy_id": "SEC001",
+"name": "Duplicate Policy",
+"enabled": "yes",
+"min_length": 10,
+"max_attempts": 3
+}]
+
+
+'''Write a function that checks if all policies have the required fields:
+"policy_id", "name", "enabled", "min_length", "max_attempts".
+Expected Output: Report missing fields for any policy.'''
+
+def check_required_fields(policies):
+    required = ["policy_id", "name", "enabled", "min_length", "max_attempts"]
+
+    for policy in policies:
+        missing = [field for field in required if field not in policy]
+        if missing:
+            print(f"{policy.get('policy_id')} missing fields: {missing}")
+        else:
+            print(f"{policy.get('policy_id')} has all required fields")
+
+check_required_fields(policies)
+
+''' Duplicate policy_id Detection
+● Question: Identify if any policy_id occurs more than once.
+● Expected Output: SEC001'''
+def check_duplicate_ids(policies):
+    seen = set()
+    duplicates = set()
+
+    for policy in policies:
+        pid = policy["policy_id"]
+        if pid in seen:
+            duplicates.add(pid)
+        else:
+            seen.add(pid)
+
+    for d in duplicates:
+        print(d)
+
+check_duplicate_ids(policies)
+
+'''Name Validation
+● Question: Check that the name field is not empty.
+● Expected Output: Policy SEC002 has an empty name'''
+
+def check_empty_name(policies):
+    for policy in policies:
+        if not policy["name"].strip():
+            print(f"Policy {policy['policy_id']} has an empty name")
+
+check_empty_name(policies)
+
+'''Enabled Field Type Check
+● Question: Ensure enabled is a boolean (True/False).
+● Expected Output: Policy SEC001 has invalid 'enabled' value (should
+be boolean)'''
+
+def check_enabled_type(policies):
+    for policy in policies:
+        if not isinstance(policy["enabled"], bool):
+            print(f"Policy {policy['policy_id']} has invalid 'enabled' value (should be boolean)")
+
+check_enabled_type(policies)
+
+'''Minimum Password Length Validation
+● Question: Validate that min_length is >= 6.
+● Expected Output: Policy SEC002 has invalid min_length: 4'''
+
+def check_min_length(policies):
+    for policy in policies:
+        if policy["min_length"] < 6:
+            print(f"Policy {policy['policy_id']} has invalid min_length: {policy['min_length']}")
+
+check_min_length(policies)
+
+'''Maximum Attempts Validation
+● Question: Validate that max_attempts is a positive integer (> 0).
+● Expected Output: Policy SEC002 has invalid max_attempts: -1'''
+
+def check_max_attempts(policies):
+    for policy in policies:
+        if policy["max_attempts"] <= 0:
+            print(f"Policy {policy['policy_id']} has invalid max_attempts: {policy['max_attempts']}")
+
+check_max_attempts(policies)
+
+'''Combined Validation
+● Question: Write a loop that validates all policies for all the rules above and prints a
+summary:
+Valid policies: SEC001
+Invalid policies: SEC002, SEC001
+Errors:
+- SEC002: Name is empty
+- SEC002: min_length < 6
+- SEC002: max_attempts <= 0
+- SEC001: Duplicate policy_id
+- SEC001: Enabled is not boolean'''
+
+def validate_policies(policies):
+    seen_ids = []
+    valid = []
+    invalid = []
+
+    # prepares a list of duplicate IDs
+    for policy in policies:
+        pid = policy["policy_id"]
+        errors = []
+        if pid in seen_ids:
+            errors.append("Duplicate policy_id")
+        else:
+            seen_ids.append(pid)
+
+        # validates the name
+        if policy["name"] == "":
+            errors.append("Name is empty")
+
+        # Enabled check
+        if type(policy["enabled"]) != bool:
+            errors.append("Enabled is not boolean")
+
+        # checks min_length
+        if policy["min_length"] < 6:
+            errors.append("min_length < 6")
+
+        # checks max_attempts
+        if policy["max_attempts"] <= 0:
+            errors.append("max_attempts <= 0")
+
+        # Final decision
+        if errors:
+            invalid.append(pid)
+            for e in errors:
+                print(f"{pid}: {e}")
+        else:
+            valid.append(pid)
+
+    print("\nValid policies:", valid)
+    print("Invalid policies:", invalid)
+
+validate_policies(policies)
+
+'''Bonus Challenge
+● Question: Write a function that returns a dictionary mapping each policy_id to a
+list of all issues found.
+● Example Output: {
+"SEC001": ["Duplicate policy_id", "Enabled not boolean"],
+"SEC002": ["Name is empty", "min_length < 6", "max_attempts
+<= 0"]
+}'''
+
+def get_policy_issues(policies):
+    result = {}
+    seen_ids = []
+
+    for policy in policies:
+        pid = policy["policy_id"]
+        issues = []
+
+        # Duplicate check
+        if pid in seen_ids:
+            issues.append("Duplicate policy_id")
+        else:
+            seen_ids.append(pid)
+
+        # Name check
+        if policy["name"] == "":
+            issues.append("Name is empty")
+
+        # Enabled type check
+        if type(policy["enabled"]) != bool:
+            issues.append("Enabled not boolean")
+
+        # checks min_length
+        if policy["min_length"] < 6:
+            issues.append("min_length < 6")
+
+        # checks max_attempts
+        if policy["max_attempts"] <= 0:
+            issues.append("max_attempts <= 0")
+
+        # Store the issues only if exist
+        if issues:
+            result[pid] = issues
+
+    return result
+
+issues = get_policy_issues(policies)
+print(issues)
