@@ -111,34 +111,29 @@ class PolicyValidator:
             return []
 
     def validate(self, policies):
-        """Run all validation rules."""
-        if not policies:
-            logging.warning("No policies to validate.")
-            return {}
-
+        """Run all validations."""
         errors = defaultdict(list)
-        seen = set()
-        duplicates = set()
+        id_count = defaultdict(int)
 
-        # Detect duplicates
+        # Count policy_id occurrences
         for policy in policies:
             pid = policy.get("policy_id")
-            if not pid:
-                continue
-            if pid in seen:
-                duplicates.add(pid)
-            else:
-                seen.add(pid)
+            if pid:
+                id_count[pid] += 1
 
-        # Apply validation rules
+        # Validate each policy
         for policy in policies:
             pid = policy.get("policy_id", "UNKNOWN")
 
+            # Run rule validators
             for validator in self.validators:
                 result = validator.validate(policy)
-                errors[pid].extend(result)
+                for issue in result:
+                    if issue not in errors[pid]:
+                        errors[pid].append(issue)
 
-            for pid in duplicates:
+            # Duplicate check (only once per ID)
+            if id_count[pid] > 1 and "Duplicate policy_id" not in errors[pid]:
                 errors[pid].append("Duplicate policy_id")
 
         return errors
@@ -177,20 +172,30 @@ def main():
         print("No validation results.")
         return
 
+    # Collect all unique policy IDs from the policies list
+    all_ids = set()
+    for policy in policies:
+        pid = policy.get("policy_id")
+        if pid:
+            all_ids.add(pid)
+
     valid = []
     invalid = []
 
-    for pid in sorted(validation_results):
-        issues = validation_results[pid]
+    # Check each policy ID
+    for pid in all_ids:
+        if pid in validation_results and validation_results[pid]:
+            invalid.append(pid)
+        else:
+            valid.append(pid)
 
+    # Print results
     print("\nValid policies:", ", ".join(valid))
     print("Invalid policies:", ", ".join(invalid))
     print("Errors:")
-
     for pid, issues in validation_results.items():
         for issue in issues:
             print(f"- {pid}: {issue}")
-
 
 if __name__ == "__main__":
     main()
