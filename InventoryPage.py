@@ -1,21 +1,3 @@
-"""from playwright.sync_api import Page
-
-class InventoryPage:
-    def __init__(self, page: Page):
-        self.page = page
-
-    def add_to_cart_btn(self, item_name):
-        return f"#add-to-cart-{item_name.lower().replace(" ","-")}"
-    def item_price(self, item_name):
-        return f"//div[text()='{item_name}']/ancestor::div[@class='inventory_item']//div[@class='inventory_item_price']"
-    def add_item_to_cart(self, item_name):
-        self.page.click(self.add_to_cart_btn(item_name))
-
-    def get_item_price(self, item_name):
-        return self.page.locator(self.item_price(item_name)).inner_test()
-    def get_inventory_count(self):
-        return self.page.locator(".inventory_item").count()
-"""
 from playwright.sync_api import Page
 
 class InventoryPage:
